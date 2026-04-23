@@ -4,25 +4,92 @@ const hp1El = document.getElementById("hp1");
 const hp2El = document.getElementById("hp2");
 const statusEl = document.getElementById("status");
 
-const assets = {
-  stage: new Image(),
-  p1Idle: new Image(),
-  p1Attack: new Image(),
-  p2Idle: new Image(),
-  p2Attack: new Image(),
-};
-assets.stage.src = "assets/stage_bg.svg";
-assets.p1Idle.src = "assets/kurenai_idle.svg";
-assets.p1Attack.src = "assets/kurenai_attack.svg";
-assets.p2Idle.src = "assets/viento_idle.svg";
-assets.p2Attack.src = "assets/viento_attack.svg";
-
 const FLOOR_Y = canvas.height - 90;
 const GRAVITY = 0.72;
 
 const keys = new Set();
 window.addEventListener("keydown", (e) => keys.add(e.key.toLowerCase()));
 window.addEventListener("keyup", (e) => keys.delete(e.key.toLowerCase()));
+
+const stageImage = new Image();
+stageImage.src = "assets/stage_bg.svg";
+
+const spriteDefinitions = {
+  p1: {
+    idle: {
+      src: "assets/original/p1_idle_sheet.png",
+      fallback: "assets/kurenai_idle.svg",
+      frameW: 80,
+      frameH: 128,
+      frames: 6,
+      fps: 8,
+      y: 0,
+    },
+    attack: {
+      src: "assets/original/p1_attack_sheet.png",
+      fallback: "assets/kurenai_attack.svg",
+      frameW: 96,
+      frameH: 128,
+      frames: 6,
+      fps: 12,
+      y: 0,
+    },
+  },
+  p2: {
+    idle: {
+      src: "assets/original/p2_idle_sheet.png",
+      fallback: "assets/viento_idle.svg",
+      frameW: 80,
+      frameH: 128,
+      frames: 6,
+      fps: 8,
+      y: 0,
+    },
+    attack: {
+      src: "assets/original/p2_attack_sheet.png",
+      fallback: "assets/viento_attack.svg",
+      frameW: 96,
+      frameH: 128,
+      frames: 6,
+      fps: 12,
+      y: 0,
+    },
+  },
+};
+
+function makeAnim(def) {
+  const sheet = new Image();
+  const fallback = new Image();
+  sheet.src = def.src;
+  fallback.src = def.fallback;
+
+  sheet.onerror = () => {
+    sheet.dataset.failed = "1";
+  };
+
+  return {
+    sheet,
+    fallback,
+    frameW: def.frameW,
+    frameH: def.frameH,
+    frames: def.frames,
+    fps: def.fps,
+    y: def.y,
+  };
+}
+
+const spriteAnims = {
+  p1: {
+    idle: makeAnim(spriteDefinitions.p1.idle),
+    attack: makeAnim(spriteDefinitions.p1.attack),
+  },
+  p2: {
+    idle: makeAnim(spriteDefinitions.p2.idle),
+    attack: makeAnim(spriteDefinitions.p2.attack),
+  },
+};
+
+let userAssetsAnnounced = false;
 
 class Projectile {
   constructor(owner, x, y, vx, color, damage) {
@@ -64,6 +131,7 @@ class Fighter {
     this.hitTimer = 0;
     this.specialCooldown = 0;
     this.combo = 0;
+    this.animTime = 0;
   }
 
   get hitbox() {
@@ -126,6 +194,7 @@ class Fighter {
     if (this.attackTimer > 0) this.attackTimer--;
     if (this.hitTimer > 0) this.hitTimer--;
     if (this.specialCooldown > 0) this.specialCooldown--;
+    this.animTime += 1;
   }
 
   draw() {
@@ -135,13 +204,16 @@ class Fighter {
 
     if (this.hitTimer > 0) ctx.globalAlpha = 0.62;
 
+    const fighterSprites = this.id === 1 ? spriteAnims.p1 : spriteAnims.p2;
     const attackPhase = this.attackTimer > 8;
-    const sprite = this.id === 1
-      ? (attackPhase ? assets.p1Attack : assets.p1Idle)
-      : (attackPhase ? assets.p2Attack : assets.p2Idle);
+    const anim = attackPhase ? fighterSprites.attack : fighterSprites.idle;
+    const frameIndex = Math.floor((this.animTime * anim.fps) / 60) % anim.frames;
 
-    if (sprite.complete) {
-      ctx.drawImage(sprite, -48, -128, 96, 128);
+    if (anim.sheet.complete && !anim.sheet.dataset.failed) {
+      const sx = frameIndex * anim.frameW;
+      ctx.drawImage(anim.sheet, sx, anim.y, anim.frameW, anim.frameH, -48, -128, 96, 128);
+    } else if (anim.fallback.complete) {
+      ctx.drawImage(anim.fallback, -48, -128, 96, 128);
     } else {
       ctx.fillStyle = this.main;
       ctx.fillRect(-24, -100, 48, 58);
@@ -232,15 +304,16 @@ function handleInputAttacks() {
 
 function resetFight() {
   p1.hp = p2.hp = 100;
-  p1.x = 250; p2.x = 850;
+  p1.x = 250;
+  p2.x = 850;
   p1.combo = p2.combo = 0;
   projectiles.length = 0;
   statusEl.textContent = "¡Round nuevo!";
 }
 
 function drawStage() {
-  if (assets.stage.complete) {
-    ctx.drawImage(assets.stage, 0, 0, canvas.width, canvas.height);
+  if (stageImage.complete) {
+    ctx.drawImage(stageImage, 0, 0, canvas.width, canvas.height);
     return;
   }
 
@@ -282,6 +355,21 @@ function updateHUD() {
   hp2El.style.width = `${p2.hp}%`;
 }
 
+function checkUserSpritesLoaded() {
+  if (userAssetsAnnounced) return;
+  const ready = [
+    spriteAnims.p1.idle.sheet,
+    spriteAnims.p1.attack.sheet,
+    spriteAnims.p2.idle.sheet,
+    spriteAnims.p2.attack.sheet,
+  ].every((img) => img.complete && !img.dataset.failed);
+
+  if (ready) {
+    statusEl.textContent = "Assets originales cargados (recortados desde spritesheet).";
+    userAssetsAnnounced = true;
+  }
+}
+
 function checkWin() {
   if (p1.hp <= 0 || p2.hp <= 0) {
     const winner = p1.hp > p2.hp ? "P1" : "P2";
@@ -297,6 +385,7 @@ function tick() {
     p1.update();
     p2.update();
     updateProjectiles();
+    checkUserSpritesLoaded();
     checkWin();
   }
   updateHUD();

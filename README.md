@@ -38,16 +38,31 @@ Abre en el navegador: `http://localhost:8000`
 - **P1:** `A/D` mover, `W` saltar, `S` agacharse, `F` puño, `G` patada, `H` especial, `R` reiniciar.
 - **P2:** `←/→` mover, `↑` saltar, `↓` agacharse, `K` puño, `L` patada, `;` especial.
 
+## Usar tus sprites originales (recortados desde spritesheet)
 
-## Assets incluidos
+Ahora el juego ya intenta usar **primero tus archivos** (spritesheet) y recorta frames con `drawImage(...)`.
+
+Pon tus imágenes en `assets/original/` con estos nombres exactos:
+
+- `p1_idle_sheet.png`
+- `p1_attack_sheet.png`
+- `p2_idle_sheet.png`
+- `p2_attack_sheet.png`
+
+### Cómo debe venir cada spritesheet
+
+- Frames en fila horizontal.
+- Fondo transparente recomendado.
+- Medidas usadas actualmente por el motor:
+  - Idle: `80x128` por frame, `6` frames.
+  - Attack: `96x128` por frame, `6` frames.
+
+> Si tus recortes tienen otro tamaño/cantidad de frames, ajusto esos valores en `game.js` para que quede exacto a tus assets.
+
+## Fallback actual
+
+Si todavía no están tus spritesheets, el juego usa temporalmente:
+
 - `assets/kurenai_idle.svg`, `assets/kurenai_attack.svg`
 - `assets/viento_idle.svg`, `assets/viento_attack.svg`
 - `assets/stage_bg.svg`
-
-Estos assets ya vienen dentro del repo y se usan en el render del juego.
-
-
-## Nota sobre assets
-Los archivos en `assets/` son una recreación ligera en SVG inspirada en tu referencia visual.
-No son un recorte 1:1 automático de las imágenes que compartiste en el chat.
-Si me pasas los sprites originales como archivos (`.png`/`.webp`), los integro exactamente en el juego.
