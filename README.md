@@ -45,3 +45,9 @@ Abre en el navegador: `http://localhost:8000`
 - `assets/stage_bg.svg`
 
 Estos assets ya vienen dentro del repo y se usan en el render del juego.
+
+
+## Nota sobre assets
+Los archivos en `assets/` son una recreación ligera en SVG inspirada en tu referencia visual.
+No son un recorte 1:1 automático de las imágenes que compartiste en el chat.
+Si me pasas los sprites originales como archivos (`.png`/`.webp`), los integro exactamente en el juego.
