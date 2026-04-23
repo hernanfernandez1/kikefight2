@@ -1,0 +1,36 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Kike Fight 2</title>
+    <link rel="stylesheet" href="style.css" />
+  </head>
+  <body>
+    <main class="layout">
+      <header>
+        <h1>Kike Fight 2 — Duelo Ninja</h1>
+        <p>
+          P1: A/D mover, W saltar, S agacharse, F puño, G patada, H especial, R reiniciar.
+          <br />
+          P2: ←/→ mover, ↑ saltar, ↓ agacharse, K puño, L patada, ; especial.
+        </p>
+      </header>
+      <section class="hud">
+        <div class="bar-wrap">
+          <span>P1 — Kurenai</span>
+          <div class="bar"><div id="hp1" class="fill p1"></div></div>
+        </div>
+        <div class="bar-wrap">
+          <span>P2 — Viento</span>
+          <div class="bar"><div id="hp2" class="fill p2"></div></div>
+        </div>
+      </section>
+      <canvas id="game" width="1100" height="560" aria-label="Juego de lucha"></canvas>
+      <footer>
+        <span id="status">¡Round 1! Pelea.</span>
+      </footer>
+    </main>
+    <script src="game.js"></script>
+  </body>
+</html>
